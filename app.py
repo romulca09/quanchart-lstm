@@ -84,14 +84,24 @@ class PredictRequest(BaseModel):
 def build_features(candles: list[Candle], asset: str) -> np.ndarray:
     """
     Construye la matriz de características a partir de la ventana de velas.
-    IMPORTANTE: esta sección debe coincidir con la ingeniería de features
-    que usaste al entrenar. Por defecto usa OHLCV escalado, que es lo más
-    común para modelos LSTM de clasificación.
-
-    Si entrenaste con otra lógica (retornos, medias móviles, RSI, etc.),
-    reemplaza este bloque con tu propio preprocesamiento.
+    Se adapta automáticamente al número de features que el escalador espera:
+      - 1 feature  -> precio de cierre (c)
+      - 5 features -> OHLCV (o, h, l, c, v)
+    El modelo espera un número fijo de timesteps (ventana de entrenamiento);
+    se lee del propio modelo para ajustar la ventana recibida.
     """
-    rows = [[c.o, c.h, c.l, c.c, c.v] for c in candles]
+    n_features = getattr(scalers[asset], "n_features_in_", 5)
+
+    # Selección de columnas según el número de features del escalador.
+    if n_features == 1:
+        rows = [[c.c] for c in candles]
+    elif n_features == 5:
+        rows = [[c.o, c.h, c.l, c.c, c.v] for c in candles]
+    else:
+        # Caso genérico: tomar las primeras n_features del orden OHLCV.
+        all_rows = [[c.o, c.h, c.l, c.c, c.v] for c in candles]
+        rows = [r[:n_features] for r in all_rows]
+
     X = np.array(rows, dtype="float32")
 
     # El modelo espera un número fijo de timesteps (ventana de entrenamiento).
