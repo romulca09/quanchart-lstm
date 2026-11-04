@@ -1,5 +1,5 @@
 {
-  "EURUSD": 0.485,
-  "USDJPY": 0.475,
-  "XAUUSD": 0.5
+  "EURUSD": { "umbral_compra": 0.585, "umbral_venta": 0.415 },
+  "USDJPY": { "umbral_compra": 0.590, "umbral_venta": 0.410 },
+  "XAUUSD": { "umbral_compra": 0.610, "umbral_venta": 0.390 }
 }
